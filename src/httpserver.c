@@ -24,12 +24,9 @@
 #include "esp_http_server.h"
 #include "cJSON.h"
 #include <string.h>
-
-typedef struct sta_conn_data {
-    char ssid[200];
-    char password[200];
-    char user_hash[200];
-} sta_conn_data;
+#include "wifi.h"
+#include "status.h"
+#include "httpserver.h"
 
 void save_sta_conn_data_into_flash(const sta_conn_data* data) {
     nvs_handle_t handle;
@@ -66,7 +63,17 @@ sta_conn_data jsonstr_to_sta_conn_data(const char* jsonstr) {
     return data;
 }
 
-esp_err_t post_wifi_sta_conn_data_handler(httpd_req_t *req) {
+esp_err_t reset_wifi_status(httpd_req_t* req) {
+
+    set_wifi_sta_saved(false);
+
+    const char resp[] = "reset indeed";
+    httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
+
+    return ESP_OK;
+}
+
+esp_err_t post_wifi_sta_conn_data_handler(httpd_req_t* req) {
     char* buffer = malloc(req->content_len);
     httpd_req_recv(req, buffer, req->content_len);
 
@@ -75,26 +82,67 @@ esp_err_t post_wifi_sta_conn_data_handler(httpd_req_t *req) {
     sta_conn_data sta_data = jsonstr_to_sta_conn_data(buffer);
     save_sta_conn_data_into_flash(&sta_data);
 
+    connect_wifi_sta(sta_data.ssid, sta_data.password);
+
     const char resp[] = "Ok!";
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
 
-    // Try sta connection
-    // Send response
     return ESP_OK;
 }
 
-// esp_err_t get_handler(httpd_req_t *req) {
-//     const char resp[] = "Hello world";
-//     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
-//     return ESP_OK;
-// }
+esp_err_t get_verify_connection_handler(httpd_req_t* req) {
+    uint8_t status = get_connection_status();
+    
+    cJSON* json_resp = cJSON_CreateObject();
 
-// static httpd_uri_t uri_get = {
-//     .uri = "/",
-//     .method = HTTP_GET,
-//     .handler = get_handler,
-//     .user_ctx = NULL
-// }
+    char status_str[10];
+    
+    switch (status) {
+        case CONN_TRYING:
+            strcpy(status_str, "trying");
+            break;
+        case CONN_FAIL:
+            strcpy(status_str, "fail");
+            break;
+        case CONN_CONNECTED:
+            strcpy(status_str, "connected");
+            break;
+        default:
+            strcpy(status_str, "idle");
+            break;
+    }
+
+    cJSON_AddStringToObject(json_resp, "status", status_str);
+
+    char* body_resp = cJSON_Print(json_resp);
+    httpd_resp_send(req, body_resp, HTTPD_RESP_USE_STRLEN);
+
+    cJSON_Delete(json_resp);
+    free(body_resp);
+    return ESP_OK;
+}
+
+esp_err_t post_restart_handler(httpd_req_t* req) {
+    char* resp = "{\"action\": restart}";
+    httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
+    usleep(1000000);
+    esp_restart();
+    return ESP_OK;
+}
+
+static httpd_uri_t uri_get_verify_connection = {
+    .uri = "/verify_connection",
+    .method = HTTP_GET,
+    .handler = get_verify_connection_handler,
+    .user_ctx = NULL
+};
+
+static httpd_uri_t uri_post_restart_esp = {
+    .uri = "/restart",
+    .method = HTTP_POST,
+    .handler = post_restart_handler,
+    .user_ctx = NULL
+};
 
 static httpd_uri_t uri_post_wifi_sta_conn = {
     .uri = "/wifi",
@@ -103,16 +151,25 @@ static httpd_uri_t uri_post_wifi_sta_conn = {
     .user_ctx = NULL
 };
 
+static httpd_uri_t  uri_reset_wifi = {
+    .uri = "/reset",
+    .method = HTTP_POST,
+    .handler = reset_wifi_status,
+    .user_ctx = NULL
+};
+
 static httpd_handle_t server = NULL;
 
-httpd_handle_t start_webserver() {
+void start_webserver() {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 
     if (httpd_start(&server, &config) == ESP_OK) {
         // httpd_register_uri_handler(server, &uri_get);
         httpd_register_uri_handler(server, &uri_post_wifi_sta_conn);
+        httpd_register_uri_handler(server, &uri_reset_wifi);
+        httpd_register_uri_handler(server, &uri_get_verify_connection);
+        httpd_register_uri_handler(server, &uri_post_restart_esp);
     }
-    return server;
 }
 
 void stop_webserver(httpd_handle_t server) {
