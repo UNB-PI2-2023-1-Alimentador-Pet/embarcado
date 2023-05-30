@@ -6,6 +6,8 @@
         "esp_wifi_types.h": "c",
         "esp_netif.h": "c",
         "nvs_flash.h": "c",
-        "nvs.h": "c"
+        "nvs.h": "c",
+        "task.h": "c",
+        "status.h": "c"
     }
 }
