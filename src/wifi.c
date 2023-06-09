@@ -49,8 +49,8 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
 
         if (!get_wifi_sta_saved()) {
             set_wifi_sta_saved(true);
-            set_connection_status(CONN_CONNECTED);
         }
+        set_connection_status(CONN_CONNECTED);
     }
     else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
         // wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*)event_data;
