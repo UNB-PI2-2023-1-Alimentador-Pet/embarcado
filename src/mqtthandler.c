@@ -3,6 +3,7 @@
 #include "esp_err.h"
 #include "string.h"
 #include "stdbool.h"
+#include "mqtt.h"
 
 #define SERVER_SENDER_ATTR "server"
 #define SENDER_ESP_ATTR "esp32"
@@ -73,3 +74,17 @@ void schedule_save_handler(const char* json) {
     cJSON_Delete(obj);
 }
 
+void send_tank_level(int value) {
+    cJSON* obj = cJSON_CreateObject();
+
+    cJSON_AddStringToObject(obj, "sender", SENDER_ESP_ATTR);
+    cJSON_AddStringToObject(obj, "user_hash", get_user_hash());
+    cJSON_AddNumberToObject(obj, "value", value);
+
+    char* string = cJSON_Print(obj);
+
+// TODO change prefix to correct name
+    mqtt_app_publish("prefix/tank_level", string, 1);
+
+    cJSON_Delete(obj);
+}
