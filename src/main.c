@@ -23,6 +23,21 @@
 #include "nvs_flash.h"
 #include "wifi.h"
 #include "balanca.h"
+#include "sensor_nivel.h"
+
+void task_balanca(void *pvParameters) {
+    // Coloque o código da função balanca() aqui
+    balanca();
+
+    vTaskDelete(NULL); // Exclui a tarefa quando a função balanca() terminar
+}
+
+void task_sensor_nivel(void *pvParameters) {
+    // Coloque o código da função sensor_nivel() aqui
+    sensor_nivel();
+
+    vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
+}
 
 void app_main() {
 
@@ -36,6 +51,12 @@ void app_main() {
     // wifi_init_softap();
     // wifi_init_softap_and_sta();
     //wifi_init();
-    balanca();
+    //balanca();
+
+    xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+    
+    sensor_nivel();
+    //xTaskCreate(task_sensor_nivel, "task_sensor_nivel", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+
 
 }
