@@ -24,6 +24,10 @@
 #include "wifi.h"
 #include "balanca.h"
 #include "sensor_nivel.h"
+#include "motor.h"
+
+// int velocidade = 500; 
+// int rpm = 1200; 
 
 void task_balanca(void *pvParameters) {
     // Coloque o código da função balanca() aqui
@@ -35,6 +39,13 @@ void task_balanca(void *pvParameters) {
 void task_sensor_nivel(void *pvParameters) {
     // Coloque o código da função sensor_nivel() aqui
     sensor_nivel();
+
+    vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
+}
+
+void task_motor(void *pvParameters) {
+    // Coloque o código da função sensor_nivel() aqui
+    aciona_motor();
 
     vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
 }
@@ -54,6 +65,7 @@ void app_main() {
     //balanca();
 
     xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+    xTaskCreate(task_motor, "task_motor", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
     
     sensor_nivel();
     //xTaskCreate(task_sensor_nivel, "task_sensor_nivel", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
