@@ -22,6 +22,7 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "wifi.h"
+#include "balanca.h"
 
 void app_main() {
 
@@ -34,5 +35,7 @@ void app_main() {
 
     // wifi_init_softap();
     // wifi_init_softap_and_sta();
-    wifi_init();
+    //wifi_init();
+    balanca();
+
 }
