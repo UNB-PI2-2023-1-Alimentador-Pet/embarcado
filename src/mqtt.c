@@ -8,7 +8,7 @@ static const char* TAG = "MQTT_CLIENT";
 static esp_mqtt_client_handle_t client;
 
 void mqtt_event_handler(void* event_handler_arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    ESP_LOGD(TAG, "Event dispached from event loop base=%s, event_id=%d", event_base, event_id);
+    ESP_LOGI(TAG, "Event dispached from event loop base=%s, event_id=%d", event_base, (int)event_id);
     esp_mqtt_event_handle_t event = event_data;
     esp_mqtt_client_handle_t client = event->client;
 
@@ -20,7 +20,7 @@ void mqtt_event_handler(void* event_handler_arg, esp_event_base_t event_base, in
             ESP_LOGI(TAG, "MQTT Client connected");
 
             //TODO inscrever-se no tópico
-            // esp_mqtt_client_subscribe(client, topic, 1);
+            esp_mqtt_client_subscribe(client, "frosutokun/teste", 1);
 
             break;
 
@@ -63,8 +63,8 @@ void mqtt_app_start() {
     esp_mqtt_client_config_t mqtt_cfg = {
         .broker =  {
             .address = {
-                .uri = "",
-                .port = 2000
+                .uri = "mqtt://test.mosquitto.org",
+                .port = 1883
             }
         }
     };
@@ -72,6 +72,7 @@ void mqtt_app_start() {
     client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(client);
+    // esp_mqtt_client_subscribe
 }
 
 int mqtt_app_publish(char* topic, char* message, int qos) {

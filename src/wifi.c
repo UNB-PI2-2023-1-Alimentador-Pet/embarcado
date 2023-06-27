@@ -71,8 +71,14 @@ void get_wifi_sta_data_from_flash() {
     size_t ssid_size = 32;
     size_t password_size = 64;
 
-    nvs_get_str(handle, "wifi_sta_ssid", ssid, &ssid_size);
-    nvs_get_str(handle, "wifi_sta_pass", password, &password_size);
+    if (USE_STA_DEFAULT) {
+        strcpy(ssid, "frostConn2.5G");
+        strcpy(password, "0000ff99GG");
+    }
+    else {
+        nvs_get_str(handle, "wifi_sta_ssid", ssid, &ssid_size);
+        nvs_get_str(handle, "wifi_sta_pass", password, &password_size);
+    }
 
     nvs_close(handle);
 
@@ -153,7 +159,7 @@ void connect_wifi_sta(const char* ssid, const char* password) {
 void wifi_init() {
     set_connection_status(CONN_IDLE);
 
-    if (get_wifi_sta_saved()) {
+    if (get_wifi_sta_saved() || USE_STA_DEFAULT) {
         // init wifi sta mode only
         wifi_init_sta();
     }

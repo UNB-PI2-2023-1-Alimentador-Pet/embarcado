@@ -1,12 +1,33 @@
-#include "mqtthandler.h"
 #include "cJSON.h"
 #include "esp_err.h"
 #include "string.h"
 #include "stdbool.h"
+#include "nvs.h"
+#include "nvs_flash.h"
+#include "mqtthandler.h"
 #include "mqtt.h"
 
 #define SERVER_SENDER_ATTR "server"
 #define SENDER_ESP_ATTR "esp32"
+
+static char user_hash[100];
+static size_t user_hash_size = 0;
+
+char* get_user_hash(size_t* hash_size) {
+    
+    if (user_hash_size == 0) {
+        nvs_handle_t handle;
+        nvs_open("nvs", NVS_READONLY, &handle);
+
+        size_t user_hash_size;
+        nvs_get_str(handle, "user_hash", user_hash, &user_hash_size);
+
+        nvs_close(handle);
+    }
+    
+    *hash_size = user_hash_size;
+    return user_hash;
+}
 
 bool verify_equal(const char* actual, const char* expected) {
     return !strcmp(actual, expected);
@@ -20,7 +41,7 @@ bool verify_sender_and_userhash(cJSON* obj, const char* expected_sender) {
     char* userhash = cJSON_GetStringValue(userhash_obj);
 
 // TODO implement get_user_hash
-    if (verify_equal(sender, expected_sender) && verify_equal(userhash, get_user_hash())) {
+    if (verify_equal(sender, expected_sender) && verify_equal(userhash, "somehash")) {
         return true;
     }
     return false;
@@ -78,7 +99,7 @@ void send_tank_level(int value) {
     cJSON* obj = cJSON_CreateObject();
 
     cJSON_AddStringToObject(obj, "sender", SENDER_ESP_ATTR);
-    cJSON_AddStringToObject(obj, "user_hash", get_user_hash());
+    // cJSON_AddStringToObject(obj, "user_hash", get_user_hash());
     cJSON_AddNumberToObject(obj, "value", value);
 
     char* string = cJSON_Print(obj);
