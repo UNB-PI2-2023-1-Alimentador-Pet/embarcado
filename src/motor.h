@@ -16,4 +16,10 @@ extern int rpm;
 void motorPasso(int numPassos);
 
 // Tarefa principal
-void aciona_motor(void);
+//void aciona_motor(void);
+//void disableMotor(void);
+void abrir_bandeja(void);
+void fechar_bandeja(void);
+void desligar_motor(void);
+void girar_motor(int sentido);
+void motorPasso(int numPassos);

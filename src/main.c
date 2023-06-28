@@ -43,12 +43,12 @@ void task_sensor_nivel(void *pvParameters) {
     vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
 }
 
-void task_motor(void *pvParameters) {
-    // Coloque o código da função sensor_nivel() aqui
-    aciona_motor();
+// void task_motor(void *pvParameters) {
+//     // Coloque o código da função sensor_nivel() aqui
+//     ligar_motor();
 
-    vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
-}
+//     vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
+// }
 
 void app_main() {
 
@@ -64,11 +64,15 @@ void app_main() {
     //wifi_init();
     //balanca();
 
-    xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
-    xTaskCreate(task_motor, "task_motor", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+    //xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+    //xTaskCreate(task_motor, "task_motor", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
     
-    sensor_nivel();
+    //sensor_nivel();
     //xTaskCreate(task_sensor_nivel, "task_sensor_nivel", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+    abrir_bandeja();
+    vTaskDelay(1000 / portTICK_PERIOD_MS); 
+    fechar_bandeja();
+
 
 
 }
