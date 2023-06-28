@@ -21,63 +21,16 @@
 #include "esp_wifi_types.h"
 #include "nvs.h"
 #include "nvs_flash.h"
-#include "esp_sntp.h"
-#include "lwip/apps/sntp.h"
-#include "sys/time.h"
-
 
 #include "wifi.h"
 #include "httpserver.h"
 #include "status.h"
 #include "mqtt.h"
+#include "time_handle.h"
 
 #include "balanca.h"
 #include "sensor_nivel.h"
 #include "motor.h"
-
-struct tm get_time() {
-    time_t now;
-    char strftime_buf[64];
-    struct tm timeinfo;
-
-    time(&now);
-    localtime_r(&now, &timeinfo);
-
-    strftime(strftime_buf, sizeof(strftime_buf), "%F %T", &timeinfo);
-    ESP_LOGI("TIME", "current time=%s", strftime_buf);
-    return timeinfo;
-}
-
-void sync_time() {
-    while(!CONN_CONNECTED) {
-        vTaskDelay(500 / portTICK_PERIOD_MS);
-    }
-    ESP_LOGI("Time", "Waiting time sync");
-    sntp_init();
-    // sntp_setservername(1, "pool.ntp.org");
-
-    sntp_setservername(0, "pool.ntp.org");
-    const char* servername = sntp_getservername(0);
-
-    ESP_LOGI("Time", "%s", servername);
-
-    sntp_set_sync_mode(SNTP_SYNC_MODE_IMMED);
-    struct timeval time_;
-    sntp_sync_time(&time_);
-
-    setenv("TZ", "GMT+3", 1);
-    tzset();
-    while (1) {
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        sntp_sync_status_t status = sntp_get_sync_status();
-
-        // ESP_LOGI("SYNC status", "%d", (int)status);
-        if (status == SNTP_SYNC_STATUS_COMPLETED) {
-            vTaskDelay(3000 / portTICK_PERIOD_MS);
-            break;
-        }
-    }
-}
 
 // int velocidade = 500; 
 // int rpm = 1200; 
@@ -121,21 +74,37 @@ void app_main() {
         sync_time();
         ESP_LOGI("TIME", "time sync");
 
+        // while (1) {
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
         get_time();
-        mqtt_app_start();
+        // }
+        // mqtt_app_start();
+
+        while(1) {
+            
+            vTaskDelay(500 / portTICK_PERIOD_MS);
+
+            if (is_time_or_later("2023-06-28 20:00:00")) {
+                abrir_bandeja();
+                vTaskDelay(1000 / portTICK_PERIOD_MS); 
+                fechar_bandeja();
+                break;
+            }
+            
+        }
+
     }
+    // xTaskCreate(task_motor, "task_motor", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+
+
 
     // wifi_init_softap();
     // wifi_init_softap_and_sta();
     //wifi_init();
-    //balanca();
+    // balanca();
 
     //xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
-    //xTaskCreate(task_motor, "task_motor", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
     
     //sensor_nivel();
     //xTaskCreate(task_sensor_nivel, "task_sensor_nivel", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
-    // abrir_bandeja();
-    // vTaskDelay(1000 / portTICK_PERIOD_MS); 
-    // fechar_bandeja();
 }

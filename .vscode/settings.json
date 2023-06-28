@@ -8,6 +8,10 @@
         "nvs_flash.h": "c",
         "nvs.h": "c",
         "task.h": "c",
-        "status.h": "c"
+        "status.h": "c",
+        "esp_chip_info.h": "c",
+        "esp_wifi.h": "c",
+        "freertos.h": "c",
+        "esp_wifi_default.h": "c"
     }
 }
