@@ -21,7 +21,13 @@
 #include "esp_wifi_types.h"
 #include "nvs.h"
 #include "nvs_flash.h"
+
 #include "wifi.h"
+#include "httpserver.h"
+#include "status.h"
+#include "mqtt.h"
+#include "time_handle.h"
+
 #include "balanca.h"
 #include "sensor_nivel.h"
 #include "motor.h"
@@ -54,25 +60,51 @@ void app_main() {
 
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-      ESP_ERROR_CHECK(nvs_flash_erase());
-      ret = nvs_flash_init();
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
+
+    wifi_init();
+    start_webserver();
+
+    if (get_wifi_sta_saved() || USE_STA_DEFAULT) {
+        // connect to mqtt server
+        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        sync_time();
+        ESP_LOGI("TIME", "time sync");
+
+        // while (1) {
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        get_time();
+        // }
+        // mqtt_app_start();
+
+        while(1) {
+            
+            vTaskDelay(500 / portTICK_PERIOD_MS);
+
+            if (is_time_or_later("2023-06-28 20:00:00")) {
+                abrir_bandeja();
+                vTaskDelay(1000 / portTICK_PERIOD_MS); 
+                fechar_bandeja();
+                break;
+            }
+            
+        }
+
+    }
+    // xTaskCreate(task_motor, "task_motor", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+
+
 
     // wifi_init_softap();
     // wifi_init_softap_and_sta();
     //wifi_init();
-    //balanca();
+    // balanca();
 
     //xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
-    //xTaskCreate(task_motor, "task_motor", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
     
     //sensor_nivel();
     //xTaskCreate(task_sensor_nivel, "task_sensor_nivel", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
-    abrir_bandeja();
-    vTaskDelay(1000 / portTICK_PERIOD_MS); 
-    fechar_bandeja();
-
-
-
 }
