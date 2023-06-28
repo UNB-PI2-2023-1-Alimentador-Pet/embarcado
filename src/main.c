@@ -31,6 +31,10 @@
 #include "status.h"
 #include "mqtt.h"
 
+#include "balanca.h"
+#include "sensor_nivel.h"
+#include "motor.h"
+
 struct tm get_time() {
     time_t now;
     char strftime_buf[64];
@@ -75,6 +79,30 @@ void sync_time() {
     }
 }
 
+// int velocidade = 500; 
+// int rpm = 1200; 
+
+void task_balanca(void *pvParameters) {
+    // Coloque o código da função balanca() aqui
+    balanca();
+
+    vTaskDelete(NULL); // Exclui a tarefa quando a função balanca() terminar
+}
+
+void task_sensor_nivel(void *pvParameters) {
+    // Coloque o código da função sensor_nivel() aqui
+    sensor_nivel();
+
+    vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
+}
+
+// void task_motor(void *pvParameters) {
+//     // Coloque o código da função sensor_nivel() aqui
+//     ligar_motor();
+
+//     vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
+// }
+
 void app_main() {
 
     esp_err_t ret = nvs_flash_init();
@@ -97,4 +125,17 @@ void app_main() {
         mqtt_app_start();
     }
 
+    // wifi_init_softap();
+    // wifi_init_softap_and_sta();
+    //wifi_init();
+    //balanca();
+
+    //xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+    //xTaskCreate(task_motor, "task_motor", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+    
+    //sensor_nivel();
+    //xTaskCreate(task_sensor_nivel, "task_sensor_nivel", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+    // abrir_bandeja();
+    // vTaskDelay(1000 / portTICK_PERIOD_MS); 
+    // fechar_bandeja();
 }
