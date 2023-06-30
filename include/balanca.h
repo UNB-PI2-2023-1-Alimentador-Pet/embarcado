@@ -15,6 +15,6 @@
 
 void hx711_init();
 int hx711_get_raw_data();
-void balanca();
+int balanca(void);
 
 #endif  // BALANCA_H

@@ -31,23 +31,22 @@
 #include "balanca.h"
 #include "sensor_nivel.h"
 #include "motor.h"
+#include "racao.h"
 
-// int velocidade = 500; 
-// int rpm = 1200; 
+int peso_bandeja;
 
 void task_balanca(void *pvParameters) {
-    // Coloque o código da função balanca() aqui
-    balanca();
+    peso_bandeja = balanca();
 
-    vTaskDelete(NULL); // Exclui a tarefa quando a função balanca() terminar
+    vTaskDelete(NULL);
 }
 
-void task_sensor_nivel(void *pvParameters) {
-    // Coloque o código da função sensor_nivel() aqui
-    sensor_nivel();
+// void task_sensor_nivel(void *pvParameters) {
+//     // Coloque o código da função sensor_nivel() aqui
+//     sensor_nivel();
 
-    vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
-}
+//     vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
+// }
 
 // void task_motor(void *pvParameters) {
 //     // Coloque o código da função sensor_nivel() aqui
@@ -55,6 +54,24 @@ void task_sensor_nivel(void *pvParameters) {
 
 //     vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
 // }
+
+void aciona_fluxo_de_tarefas(){
+    //Pesar a ração
+    xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+    //Acionar o motor de liberação de comidas
+    while(peso_bandeja < 1000){
+        despejar_comida();
+        vTaskDelay(300 / portTICK_PERIOD_MS);
+        peso_bandeja = balanca();
+    }
+    //Acionar o motor de disponibilizar a bandeja
+    abrir_bandeja();
+    //Verificar o tempo de disponibilização da bandeja
+    vTaskDelay(2000 / portTICK_PERIOD_MS); 
+    //Acionar o motor de recolher a bandeja
+    fechar_bandeja();
+
+}
 
 void app_main() {
 
@@ -85,15 +102,20 @@ void app_main() {
             vTaskDelay(500 / portTICK_PERIOD_MS);
 
             if (is_time_or_later("2023-06-28 20:00:00")) {
-                abrir_bandeja();
-                vTaskDelay(1000 / portTICK_PERIOD_MS); 
-                fechar_bandeja();
+                // abrir_bandeja();
+                // vTaskDelay(1000 / portTICK_PERIOD_MS); 
+                // fechar_bandeja();
+                aciona_fluxo_de_tarefas();
                 break;
             }
             
         }
 
     }
+
+
+
+
     // xTaskCreate(task_motor, "task_motor", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
 
 
