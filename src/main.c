@@ -68,32 +68,41 @@ void app_main() {
     wifi_init();
     start_webserver();
 
-    if (get_wifi_sta_saved() || USE_STA_DEFAULT) {
-        // connect to mqtt server
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
-        sync_time();
-        ESP_LOGI("TIME", "time sync");
-
-        // while (1) {
+    // sensor_nivel();
+    while (1) {
+        ESP_LOGI("WARNING", "Starting in 10 seconds!");
+        vTaskDelay(10000 / portTICK_PERIOD_MS);
+        abrir_bandeja();
         vTaskDelay(1000 / portTICK_PERIOD_MS);
-        get_time();
-        // }
-        // mqtt_app_start();
-
-        while(1) {
-            
-            vTaskDelay(500 / portTICK_PERIOD_MS);
-
-            if (is_time_or_later("2023-06-28 20:00:00")) {
-                abrir_bandeja();
-                vTaskDelay(1000 / portTICK_PERIOD_MS); 
-                fechar_bandeja();
-                break;
-            }
-            
-        }
-
+        fechar_bandeja();
     }
+
+    // if (get_wifi_sta_saved() || USE_STA_DEFAULT) {
+    //     // connect to mqtt server
+    //     vTaskDelay(2000 / portTICK_PERIOD_MS);
+    //     // sync_time();
+    //     // ESP_LOGI("TIME", "time sync");
+
+    //     // while (1) {
+    //     vTaskDelay(1000 / portTICK_PERIOD_MS);
+    //     // get_time();
+    //     // }
+    //     // mqtt_app_start();
+
+    //     while(1) {
+            
+    //         vTaskDelay(500 / portTICK_PERIOD_MS);
+
+    //         if (is_time_or_later("2023-06-28 20:00:00")) {
+    //             abrir_bandeja();
+    //             vTaskDelay(1000 / portTICK_PERIOD_MS); 
+    //             fechar_bandeja();
+    //             break;
+    //         }
+            
+    //     }
+
+    // }
     // xTaskCreate(task_motor, "task_motor", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
 
 

@@ -78,7 +78,7 @@
 // Definição das variáveis de controle do motor
 int velocidade = 500;  // Velocidade em microssegundos entre cada pulso (mais baixo = mais rápido) 1000= 1 segundo
 //int sentido = 1;       // 1 para horário, -1 para anti-horário
-int rpm = 18000;          // Rotações por minuto desejadas 600= 1 volta completa
+int rpm = 11700;          // Rotações por minuto desejadas 600= 1 volta completa
 
 // Variável de controle do motor
 int motorLigado = 1;
@@ -142,13 +142,13 @@ void gira_motor(int sentido) {
 void abrir_bandeja() {
   motorLigado = 1;
   //xTaskCreate(gira_motor, "gira_motor", 2048, NULL, 5, NULL);
-  gira_motor(1);
+  gira_motor(0);
 }
 
 void fechar_bandeja() {
   motorLigado = 1;
   //xTaskCreate(gira_motor, "gira_motor", 2048, NULL, 5, NULL);
-  gira_motor(0);
+  gira_motor(1);
 }
 
 // Função para desligar o motor
