@@ -33,7 +33,8 @@
 #include "motor.h"
 #include "racao.h"
 
-int peso_bandeja;
+float peso_bandeja = 0;
+float nivel_racao = 0;
 
 void task_balanca(void *pvParameters) {
     peso_bandeja = balanca();
@@ -41,35 +42,48 @@ void task_balanca(void *pvParameters) {
     vTaskDelete(NULL);
 }
 
-// void task_sensor_nivel(void *pvParameters) {
-//     // Coloque o código da função sensor_nivel() aqui
-//     sensor_nivel();
+void task_sensor_nivel(void *pvParameters) {
+    nivel_racao = sensor_nivel();
 
-//     vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
-// }
+    vTaskDelete(NULL);
+}
 
-// void task_motor(void *pvParameters) {
-//     // Coloque o código da função sensor_nivel() aqui
-//     ligar_motor();
+void verifica_nivel(){
+    xTaskCreate(task_sensor_nivel, "task_sensor_nivel", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
 
-//     vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
-// }
+    //printf("------------------\n");
+    //printf("Nivel de ração: %d\n", nivel_racao);
+    
+}
 
 void aciona_fluxo_de_tarefas(){
-    //Pesar a ração
     xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
-    //Acionar o motor de liberação de comidas
-    while(peso_bandeja < 1000){
-        despejar_comida();
-        vTaskDelay(300 / portTICK_PERIOD_MS);
-        peso_bandeja = balanca();
+    //printf("Primeiro peso da bandeja: %f\n", peso_bandeja);
+
+    while(1){
+        if (peso_bandeja >= 100){
+            printf("Despejando ração\n\n\n");
+            despejar_comida();
+            vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+            printf("Acionando sensor de nível\n\n\n");
+            verifica_nivel();
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+            printf("Abrindo bandeja\n\n\n");
+            abrir_bandeja();
+            vTaskDelay(2000 / portTICK_PERIOD_MS); 
+
+            printf("Fechando bandeja\n\n\n");
+            fechar_bandeja();
+            vTaskDelay(20000 / portTICK_PERIOD_MS);
+        }
+        else{
+            xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+        }
+        printf("Peso da bandeja: %f\n", peso_bandeja);
+        vTaskDelay(2000 / portTICK_PERIOD_MS);
     }
-    //Acionar o motor de disponibilizar a bandeja
-    abrir_bandeja();
-    //Verificar o tempo de disponibilização da bandeja
-    vTaskDelay(2000 / portTICK_PERIOD_MS); 
-    //Acionar o motor de recolher a bandeja
-    fechar_bandeja();
 
 }
 
@@ -113,6 +127,10 @@ void app_main() {
 
     }
 
+
+// printf("--------------- Iniciando simulação ---------------\n");
+// vTaskDelay(3000 / portTICK_PERIOD_MS);
+// aciona_fluxo_de_tarefas();
 
 
 

@@ -10,7 +10,7 @@
 
 // Definição das variáveis de controle do motor
 int Rvelocidade = 500;  
-int Rrpm = 1800; 
+int Rrpm = 9000; 
 
 // Variável de controle do motor
 int RmotorLigado = 1;

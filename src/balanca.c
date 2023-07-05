@@ -54,8 +54,8 @@ int balanca(void)
         int32_t raw_data = hx711_get_raw_data();
         
         float peso=0;
-        peso=raw_data-8586650;
-        printf("Raw Data: %ld", raw_data);
+        peso=raw_data-8587360;
+        //printf("Raw Data: %ld", raw_data);
         peso=peso/396;
         printf("peso = %f\n", peso);
         peso_final = peso;

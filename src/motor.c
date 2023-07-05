@@ -40,11 +40,11 @@ void gira_motor(int sentido) {
     
     if (sentido == 1) {
       gpio_set_level(PIN_DIR, 1); // Sentido horário
-      printf("gira no sentido anti horario\n");
+      //printf("gira no sentido anti horario\n");
       motorPasso(passosPorLoop);
     } else {
       gpio_set_level(PIN_DIR, 0); // Sentido anti-horário
-      printf("gira no sentido horario\n");
+      //printf("gira no sentido horario\n");
       passosPorLoop = passosPorSegundo / portTICK_PERIOD_MS;  
       motorPasso(passosPorLoop);
     }
