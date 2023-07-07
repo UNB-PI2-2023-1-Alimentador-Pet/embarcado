@@ -8,8 +8,11 @@
 #define PIN_STEP  GPIO_NUM_18
 #define PIN_DIR   GPIO_NUM_19
 
-int velocidade = 500;  
-int rpm = 18000;   
+// int velocidade = 500;  
+// int rpm = 18000;
+int velocidade = 2000;  
+int rpm = 98; 
+
 int motorLigado = 1;
 
 // Função para girar o motor de passo
@@ -40,11 +43,11 @@ void gira_motor(int sentido) {
     
     if (sentido == 1) {
       gpio_set_level(PIN_DIR, 1); // Sentido horário
-      //printf("gira no sentido anti horario\n");
+      printf("gira no sentido anti horario\n");
       motorPasso(passosPorLoop);
     } else {
       gpio_set_level(PIN_DIR, 0); // Sentido anti-horário
-      //printf("gira no sentido horario\n");
+      printf("gira no sentido horario\n");
       passosPorLoop = passosPorSegundo / portTICK_PERIOD_MS;  
       motorPasso(passosPorLoop);
     }
