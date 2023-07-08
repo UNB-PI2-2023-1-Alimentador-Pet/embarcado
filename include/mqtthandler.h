@@ -6,4 +6,6 @@ void close_feeder_handler(const char* json);
 void schedule_save_handler(const char* json);
 void send_tank_level(int value);
 
+char* get_user_hash(size_t* hash_size);
+
 #endif

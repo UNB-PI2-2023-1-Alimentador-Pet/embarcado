@@ -19,6 +19,15 @@ struct tm get_time() {
     return timeinfo;
 }
 
+void get_hms(int8_t* hour, int8_t* minute, int8_t* second) {
+    struct tm timeinfo = get_time();
+    char strftime_buf[8];
+
+    strftime(strftime_buf, sizeof(strftime_buf), "%H:%M:%S", &timeinfo);
+    sscanf(strftime_buf, "%hhd:%hhd:%hhd", hour, minute, second);
+}
+
+
 bool is_time_or_later(const char* _time) {
     struct tm target_time;
     strptime(_time, "%F %T", &target_time);

@@ -3,6 +3,8 @@
 #include "esp_log.h"
 
 #include "mqtt.h"
+#include "status.h"
+#include "mqtthandler.h"
 
 static const char* TAG = "MQTT_CLIENT";
 static esp_mqtt_client_handle_t client;
@@ -19,8 +21,13 @@ void mqtt_event_handler(void* event_handler_arg, esp_event_base_t event_base, in
         case MQTT_EVENT_CONNECTED:
             ESP_LOGI(TAG, "MQTT Client connected");
 
-            //TODO inscrever-se no tópico
-            esp_mqtt_client_subscribe(client, "frosutokun/teste", 1);
+            char schedules_topic[40];
+            strcpy(schedules_topic, "schedules/");
+            strcpy(&schedules_topic[10], get_user_hash(NULL));
+
+            ESP_LOGI("SCHEDULE TOPIC", "%s", schedules_topic);
+
+            esp_mqtt_client_subscribe(client, schedules_topic, 1);
 
             break;
 
