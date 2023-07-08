@@ -60,13 +60,13 @@ void gira_motor(int sentido) {
 void abrir_bandeja() {
   motorLigado = 1;
   //xTaskCreate(gira_motor, "gira_motor", 2048, NULL, 5, NULL);
-  gira_motor(1);
+  gira_motor(0);
 }
 
 void fechar_bandeja() {
   motorLigado = 1;
   //xTaskCreate(gira_motor, "gira_motor", 2048, NULL, 5, NULL);
-  gira_motor(0);
+  gira_motor(1);
 }
 
 // Função para desligar o motor
