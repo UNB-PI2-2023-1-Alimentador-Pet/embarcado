@@ -31,30 +31,124 @@
 #include "balanca.h"
 #include "sensor_nivel.h"
 #include "motor.h"
+#include "racao.h"
+#include "presenca.h"
 
-// int velocidade = 500; 
-// int rpm = 1200; 
+float peso_bandeja = 0;
+float nivel_racao = 0;
+float sensor_presenca = 100;
 
 void task_balanca(void *pvParameters) {
-    // Coloque o código da função balanca() aqui
-    balanca();
+    peso_bandeja = balanca();
 
-    vTaskDelete(NULL); // Exclui a tarefa quando a função balanca() terminar
+    vTaskDelete(NULL);
 }
 
 void task_sensor_nivel(void *pvParameters) {
-    // Coloque o código da função sensor_nivel() aqui
-    sensor_nivel();
+    nivel_racao = sensor_nivel();
 
-    vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
+    vTaskDelete(NULL);
 }
 
-// void task_motor(void *pvParameters) {
-//     // Coloque o código da função sensor_nivel() aqui
-//     ligar_motor();
+void task_sensor_presenca(void *pvParameters) {
+    sensor_presenca = Psensor_nivel();
 
-//     vTaskDelete(NULL); // Exclui a tarefa quando a função sensor_nivel() terminar
-// }
+    vTaskDelete(NULL);
+}
+
+void verifica_nivel(){
+    xTaskCreate(task_sensor_nivel, "task_sensor_nivel", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+
+    //printf("------------------\n");
+    //printf("Nivel de ração: %d\n", nivel_racao);
+    
+}
+
+void verifica_presenca(){
+    xTaskCreate(task_sensor_presenca, "task_sensor_presenca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+
+    // printf("------------------\n");
+    // printf("Nivel de ração: %f\n", sensor_presenca);
+    
+}
+
+void motores_teste(){
+
+    vTaskDelay(2000 / portTICK_PERIOD_MS); 
+
+    printf("Despejando ração\n\n");
+    for (int i =0;i<5;i++){
+        despejar_comida();
+        //abrir_bandeja();
+        vTaskDelay(1000 / portTICK_PERIOD_MS); 
+    }
+    // despejar_comida();
+    // vTaskDelay(2000 / portTICK_PERIOD_MS); 
+
+    printf("Acionando sensor de nível\n\n");
+    verifica_nivel();
+    vTaskDelay(3000 / portTICK_PERIOD_MS);
+
+    printf("Acionando sensor de presenca\n\n");
+    verifica_presenca();
+    vTaskDelay(3000 / portTICK_PERIOD_MS);
+
+    printf("Esperando detectar presença menor que 10cm para liberação\n");
+
+    while(1){
+        //verifica_nivel();
+        //printf("tá entrando aqui\n");
+        verifica_presenca();
+        if(sensor_presenca <= 10){
+            //abrir_bandeja();
+            despejar_comida();
+            vTaskDelay(2000 / portTICK_PERIOD_MS); 
+
+            fechar_bandeja();
+            //girar_sentido_contrario();
+            vTaskDelay(2000 / portTICK_PERIOD_MS); 
+
+            break;
+        }
+        vTaskDelay(5000 / portTICK_PERIOD_MS); 
+
+    }
+}
+
+void aciona_fluxo_de_tarefas(){
+    xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+    printf("Primeiro peso da bandeja: %f\n", peso_bandeja);
+
+    while(1){
+        if (peso_bandeja <= 100){
+
+            printf("Despejando ração\n\n\n");
+            despejar_comida();
+            vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+            printf("Acionando sensor de nível\n\n\n");
+            verifica_nivel();
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+            xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+        }
+        else{
+
+            printf("Abrindo bandeja\n\n\n");
+            abrir_bandeja();
+            vTaskDelay(4000 / portTICK_PERIOD_MS); 
+
+
+            printf("Fechando bandeja\n\n\n");
+            fechar_bandeja();
+            vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+            break;
+
+        }
+    }
+
+}
 
 void app_main() {
 
@@ -68,41 +162,56 @@ void app_main() {
     wifi_init();
     start_webserver();
 
-    // sensor_nivel();
-    while (1) {
-        ESP_LOGI("WARNING", "Starting in 10 seconds!");
-        vTaskDelay(10000 / portTICK_PERIOD_MS);
-        abrir_bandeja();
+    if (get_wifi_sta_saved() || USE_STA_DEFAULT) {
+        // connect to mqtt server
+        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        sync_time();
+        ESP_LOGI("TIME", "time sync");
+
+        // while (1) {
         vTaskDelay(1000 / portTICK_PERIOD_MS);
-        fechar_bandeja();
+        get_time();
+        // }
+        // mqtt_app_start();
+
+        while(1) {
+            
+            vTaskDelay(500 / portTICK_PERIOD_MS);
+
+            if (is_time_or_later("2023-06-28 20:00:00")) {
+                // abrir_bandeja();
+                // vTaskDelay(1000 / portTICK_PERIOD_MS); 
+                // fechar_bandeja();
+                //aciona_fluxo_de_tarefas();
+                motores_teste();
+                break;
+            }
+            
+        }
+
     }
 
-    // if (get_wifi_sta_saved() || USE_STA_DEFAULT) {
-    //     // connect to mqtt server
-    //     vTaskDelay(2000 / portTICK_PERIOD_MS);
-    //     // sync_time();
-    //     // ESP_LOGI("TIME", "time sync");
 
-    //     // while (1) {
-    //     vTaskDelay(1000 / portTICK_PERIOD_MS);
-    //     // get_time();
-    //     // }
-    //     // mqtt_app_start();
+// printf("--------------- Iniciando simulação ---------------\n");
+// vTaskDelay(3000 / portTICK_PERIOD_MS);
 
-    //     while(1) {
-            
-    //         vTaskDelay(500 / portTICK_PERIOD_MS);
+// while(1){
+//     xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+//     printf("Primeiro peso da bandeja: %f\n", peso_bandeja);
+//     vTaskDelay(5000 / portTICK_PERIOD_MS);
+// }
 
-    //         if (is_time_or_later("2023-06-28 20:00:00")) {
-    //             abrir_bandeja();
-    //             vTaskDelay(1000 / portTICK_PERIOD_MS); 
-    //             fechar_bandeja();
-    //             break;
-    //         }
-            
-    //     }
+// while(1){
+// motores_teste();
+// //abrir_bandeja();
+// vTaskDelay(2000 / portTICK_PERIOD_MS);
+// //verifica_nivel();
 
-    // }
+// }
+
+
+
+
     // xTaskCreate(task_motor, "task_motor", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
 
 

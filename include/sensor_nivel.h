@@ -12,6 +12,6 @@
 #define LED_PIN 13
 
 void ultrasonic_task(void *pvParameters);
-void sensor_nivel();
+int sensor_nivel();
 
 #endif  // SENSOR_NIVEL_H

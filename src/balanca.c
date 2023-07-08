@@ -44,23 +44,26 @@ int hx711_get_raw_data()
     return raw_data;
 }
 
-void balanca(void)
+int balanca(void)
 {
     hx711_init();
+    int peso_final;
 
-    while (1)
+    for (int i = 0; i < 5; i++)
     {
         int32_t raw_data = hx711_get_raw_data();
         
         float peso=0;
-        peso=raw_data-8586650;
-        printf("Raw Data: %ld", raw_data);
+        peso=raw_data-8587360;
+        //printf("Raw Data: %ld", raw_data);
         peso=peso/396;
         printf("peso = %f\n", peso);
+        peso_final = peso;
         // Convert raw data to weight
         // Use calibration factors to convert raw data to weight value
         // The formula will depend on the characteristics of your load cell and calibration procedure
 
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
+    return peso_final;
 }

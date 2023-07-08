@@ -4,14 +4,15 @@
 #include <driver/gpio.h>
 #include <esp_timer.h>
 //definição dos pinos
-#define TRIGGER_PIN 14
-#define ECHO_PIN 27
+#define TRIGGER_PIN 13
+#define ECHO_PIN 12
 // #define LED_PIN 13
 
 //int return_value = 0;
 
-//void ultrasonic_task(void *pvParameters) {
-float ultrasonic_task() {
+//void Pultrasonic_task(void *pvParameters) {
+float Pultrasonic_task() {
+  printf("Função dentro do sensor de Pultrassonic\n");
   gpio_reset_pin(TRIGGER_PIN);
   gpio_reset_pin(ECHO_PIN);
   gpio_set_direction(TRIGGER_PIN, GPIO_MODE_OUTPUT);
@@ -47,7 +48,7 @@ float ultrasonic_task() {
     if (distance * 100 > dist)
       dist = distance * 100;
 
-    vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(200));
+    vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(100));
   }
   return_v = dist;
   return return_v;
@@ -55,10 +56,10 @@ float ultrasonic_task() {
 }
 
 
-int sensor_nivel() {
-  float return_value = ultrasonic_task();
-  vTaskDelay(1100 / portTICK_PERIOD_MS);
-  //xTaskCreate(ultrasonic_task, "ultrasonic_task", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
-  printf("\n\n\nLeitura na função sensor_nivel: %f cm\n\n\n", return_value);
+int Psensor_nivel() {
+  float return_value = Pultrasonic_task();
+  vTaskDelay(1000 / portTICK_PERIOD_MS);
+  //xTaskCreate(Pultrasonic_task, "Pultrasonic_task", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+  printf("\n\nLeitura do sensor de presenca: %f cm\n\n", return_value);
   return return_value;
 }
