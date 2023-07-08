@@ -14,7 +14,7 @@ static char user_hash[100];
 static size_t user_hash_size = 0;
 
 char* get_user_hash(size_t* hash_size) {
-    
+
     if (user_hash_size == 0) {
         nvs_handle_t handle;
         nvs_open("nvs", NVS_READONLY, &handle);
@@ -24,8 +24,9 @@ char* get_user_hash(size_t* hash_size) {
 
         nvs_close(handle);
     }
-    
-    *hash_size = user_hash_size;
+    if (hash_size != NULL) {
+        *hash_size = user_hash_size;
+    }
     return user_hash;
 }
 

@@ -11,4 +11,6 @@ uint8_t get_connection_status();
 void set_wifi_sta_saved(bool);
 bool get_wifi_sta_saved();
 
+// void get_user_hash(char* buffer);
+
 #endif

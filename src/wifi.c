@@ -23,6 +23,7 @@
 #include "nvs_flash.h"
 #include "wifi.h"
 #include "status.h"
+#include "time_handle.h"
 
 static const char* TAG = "wifi";
 
@@ -51,13 +52,18 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
             set_wifi_sta_saved(true);
         }
         set_connection_status(CONN_CONNECTED);
+        sync_time();
     }
     else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
         // wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*)event_data;
         ESP_LOGI(TAG, "DISCONNECTED\n");
         if (get_connection_status() == CONN_TRYING) {
             set_connection_status(CONN_FAIL);
+            return;
         }
+
+        ESP_ERROR_CHECK(esp_wifi_connect());
+
     }
 }
 

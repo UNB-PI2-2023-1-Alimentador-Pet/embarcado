@@ -56,3 +56,13 @@ bool get_wifi_sta_saved() {
     nvs_close(handle);
     return status;
 }
+
+// void get_user_hash(char* buffer) {
+//     nvs_handle_t handle;
+//     nvs_open("nvs", NVS_READONLY, &handle);
+
+//     size_t len = 30;
+//     nvs_get_str(handle, "user_hash", buffer, &len);
+
+//     nvs_close(handle);
+// }

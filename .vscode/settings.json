@@ -12,6 +12,8 @@
         "esp_chip_info.h": "c",
         "esp_wifi.h": "c",
         "freertos.h": "c",
-        "esp_wifi_default.h": "c"
+        "esp_wifi_default.h": "c",
+        "scheduler.h": "c",
+        "balanca.h": "c"
     }
 }
