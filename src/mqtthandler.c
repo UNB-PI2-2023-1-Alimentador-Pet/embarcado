@@ -6,12 +6,64 @@
 #include "nvs_flash.h"
 #include "mqtthandler.h"
 #include "mqtt.h"
+#include "mac.h"
+#include "scheduler.h"
 
 #define SERVER_SENDER_ATTR "server"
 #define SENDER_ESP_ATTR "esp32"
 
 static char user_hash[100];
 static size_t user_hash_size = 0;
+
+void send_status() {
+    cJSON* obj = cJSON_CreateObject();
+
+    // TODO change values
+    cJSON_AddStringToObject(obj, "action", "status");
+    cJSON_AddNumberToObject(obj, "reservatory_level", 20);
+    cJSON_AddBoolToObject(obj, "open", false);
+
+    char* data = cJSON_Print(obj);
+    char topic[20];
+    sprintf(topic, "/feeder/%s", get_mac_address());
+
+    mqtt_app_publish(topic, data, 1);
+    cJSON_Delete(obj);
+}
+
+void remote_open(char* json) {
+    cJSON* obj = cJSON_Parse(json);
+
+    cJSON* obj_action = cJSON_GetObjectItem(obj, "action");
+    char* action = cJSON_GetStringValue(obj_action);
+
+    if (strcmp(action, "feed")) {
+        cJSON_Delete(obj);
+        return;
+    }
+
+    int quantidade = 0;
+    int tempo_bandeja = 0;
+
+    cJSON* obj_quantidade = cJSON_GetObjectItem(obj, "quantidade");
+    quantidade = cJSON_GetNumberValue(obj_quantidade);
+
+    cJSON* obj_tempo_bandeja = cJSON_GetObjectItem(obj, "tempoBandeja");
+    tempo_bandeja = cJSON_GetNumberValue(obj_tempo_bandeja);
+
+    // TODO
+    // aciona_fluxo_de_tarefas()
+
+    cJSON_Delete(obj);
+}
+
+void schedule_save_handler(const char* json) {
+    char key[30];
+    char value[30];
+    struct schedule schedule = scheduler_decode_json(json);
+    scheduler_encode(&schedule, key, value);
+    scheduler_save(key, value);
+}
 
 char* get_user_hash(size_t* hash_size) {
 
@@ -74,27 +126,27 @@ void close_feeder_handler(const char* json) {
     cJSON_Delete(obj);
 }
 
-void schedule_save_handler(const char* json) {
-    cJSON* obj = cJSON_Parse(json);
+// void schedule_save_handler(const char* json) {
+//     cJSON* obj = cJSON_Parse(json);
 
-    if (!verify_sender_and_userhash(obj, SERVER_SENDER_ATTR)) return;
+//     if (!verify_sender_and_userhash(obj, SERVER_SENDER_ATTR)) return;
 
-    cJSON* schedule_array = cJSON_GetObjectItem(obj, "schedule");
-    int schedule_array_size = cJSON_GetArraySize(schedule_array);
+//     cJSON* schedule_array = cJSON_GetObjectItem(obj, "schedule");
+//     int schedule_array_size = cJSON_GetArraySize(schedule_array);
 
-    for (int i = 0; i < schedule_array_size; i++) {
-        cJSON* item = cJSON_GetArrayItem(schedule_array, i);
-        cJSON* qtde_obj = cJSON_GetObjectItem(item, "qtde");
-        cJSON* timestamp_obj = cJSON_GetObjectItem(item, "timestamp");
+//     for (int i = 0; i < schedule_array_size; i++) {
+//         cJSON* item = cJSON_GetArrayItem(schedule_array, i);
+//         cJSON* qtde_obj = cJSON_GetObjectItem(item, "qtde");
+//         cJSON* timestamp_obj = cJSON_GetObjectItem(item, "timestamp");
 
-        int qtde = cJSON_GetNumberValue(qtde_obj);
-        int timestamp = cJSON_GetNumberValue(timestamp_obj);
+//         int qtde = cJSON_GetNumberValue(qtde_obj);
+//         int timestamp = cJSON_GetNumberValue(timestamp_obj);
 
-        // TODO
-    }
+//         // TODO
+//     }
 
-    cJSON_Delete(obj);
-}
+//     cJSON_Delete(obj);
+// }
 
 void send_tank_level(int value) {
     cJSON* obj = cJSON_CreateObject();

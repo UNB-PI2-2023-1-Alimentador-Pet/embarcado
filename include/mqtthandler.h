@@ -8,4 +8,7 @@ void send_tank_level(int value);
 
 char* get_user_hash(size_t* hash_size);
 
+void send_status();
+void remote_open(char* json);
+
 #endif

@@ -47,6 +47,7 @@ int8_t scheduler_get_week_day(int8_t week_index) {
 
 struct schedule scheduler_decode_json(char* json) {
     cJSON* obj = cJSON_Parse(json);
+    
     struct schedule schedule;
     schedule.weekdays = 0;
 
@@ -102,10 +103,7 @@ bool scheduler_feed_time() {
             int timedelta = scheduled_second_of_day - current_second_of_day;
             if (schedule.active && timedelta <= 0 && timedelta >= -300) {
                 result = true;
-                
-                ESP_LOGI("TIME", "ITS FUCKING TIME!");
-                scheduler_print(&schedule);
-
+                // scheduler_print(&schedule);
                 break;
             }
         }

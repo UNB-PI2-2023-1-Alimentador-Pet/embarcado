@@ -19,6 +19,11 @@ struct tm get_time() {
     return timeinfo;
 }
 
+void get_current_date(char* date_buffer, size_t len) {
+    struct tm now = get_time();
+    strftime(date_buffer, len, "%Y/%m/%d", &now);
+}
+
 void get_hms(int8_t* hour, int8_t* minute, int8_t* second) {
     struct tm timeinfo = get_time();
     char strftime_buf[8];
@@ -65,7 +70,7 @@ void sync_time() {
 
         // ESP_LOGI("SYNC status", "%d", (int)status);
         if (status == SNTP_SYNC_STATUS_COMPLETED) {
-            vTaskDelay(3000 / portTICK_PERIOD_MS);
+            vTaskDelay(10000 / portTICK_PERIOD_MS);
             break;
         }
     }
