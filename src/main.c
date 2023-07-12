@@ -41,15 +41,44 @@ void testemotores(){
     
     int i = 0;
     while( i < 50){
-            despejar_comida();
-            vTaskDelay(1000 / portTICK_PERIOD_MS); 
-            abrir_bandeja();
-            vTaskDelay(1000 / portTICK_PERIOD_MS); 
+
             fechar_bandeja();
-            vTaskDelay(1000 / portTICK_PERIOD_MS); 
+            vTaskDelay(2000 / portTICK_PERIOD_MS); 
+            abrir_bandeja();
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
             girar_sentido_contrario();
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             i++;
+    }
+}
+
+void teste_balancas(){
+    printf("Simulção de balanças\n");
+    float ver_peso = 0;
+    //task_balanca();
+    //vTaskDelay(1000 / portTICK_PERIOD_MS); 
+
+    int i = 0;
+    while(i < 50){
+            xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            ver_peso = getPesoBandeja();
+            if (ver_peso < 0 || ver_peso > 500){
+                ver_peso = 0;
+            }
+            else
+            printf("Peso da bandeja: %f\n", ver_peso);
+            
+            if(ver_peso > 10){
+                printf("Atingiu o peso necessário\nSó esperar o burro do cachorro comer\n");
+                fechar_bandeja();
+                break;
+            }
+            else
+                despejar_comida();
+                
+            i++;
+            printf("Chegou aqui\n");
     }
 }
 
@@ -63,39 +92,50 @@ void app_main() {
     ESP_ERROR_CHECK(ret);
 
     wifi_init();
-    start_webserver();
 
-    if (get_wifi_sta_saved() || USE_STA_DEFAULT) {
-        // connect to mqtt server
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
-        sync_time();
-        ESP_LOGI("TIME", "time sync");
+    vTaskDelay(10000 / portTICK_PERIOD_MS);
 
-        // while (1) {
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        get_time();
-        // }
-        // mqtt_app_start();
+    mqtt_app_start();
+    // start_webserver();
 
-        while(1) {
+    // if (get_wifi_sta_saved() || USE_STA_DEFAULT) {
+    //     // connect to mqtt server
+    //     vTaskDelay(2000 / portTICK_PERIOD_MS);
+    //     sync_time();
+    //     ESP_LOGI("TIME", "time sync");
+
+    //     // while (1) {
+    //     vTaskDelay(1000 / portTICK_PERIOD_MS);
+    //     get_time();
+    //     // }
+    //     // mqtt_app_start();
+
+    //     while(1) {
             
-            vTaskDelay(500 / portTICK_PERIOD_MS);
+    //         vTaskDelay(500 / portTICK_PERIOD_MS);
 
-            if (is_time_or_later("2023-06-28 20:00:00")) {
-                aciona_fluxo_de_tarefas(1,60);
-                break;
-            }
+    //         if (is_time_or_later("2023-06-28 20:00:00")) {
+    //             aciona_fluxo_de_tarefas(1,60);
+    //             break;
+    //         }
             
-        }
+    //     }
 
-    }
+    // }
 
 
-// printf("--------------- Iniciando simulação ---------------\n");
-// vTaskDelay(3000 / portTICK_PERIOD_MS);
+printf("--------------- Iniciando simulação ---------------\n");
+vTaskDelay(15000 / portTICK_PERIOD_MS);
 
-// testemotores();
-//aciona_fluxo_de_tarefas(1,60);
+while(1){
+
+    //testemotores();
+    teste_balancas();
+    //vTaskDelay(1000 / portTICK_PERIOD_MS);
+}
+
+//testemotores();
+// aciona_fluxo_de_tarefas(1,60);
 
 
 }

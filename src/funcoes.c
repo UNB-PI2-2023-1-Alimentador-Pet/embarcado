@@ -15,6 +15,7 @@ void task_balanca(void *pvParameters) {
     peso_novo = balanca();
     setPesoBandeja(peso_novo);
 
+
     vTaskDelete(NULL);
 }
 
@@ -50,22 +51,25 @@ void verifica_presenca(){
 
 void aciona_fluxo_de_tarefas(int tempo_min, int peso_gramas){
 
-    vTaskDelay(2000 / portTICK_PERIOD_MS); 
-
+    //vTaskDelay(2000 / portTICK_PERIOD_MS); 
     printf("1 - Iniciou o processo para disponibilizar a ração...\n");
-    //xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
-    printf("pesei o valor da balança\n");
+    float ver_peso = 0;
 
     int i = 0;
     while( i < 50){
-        if(i>=5)
-            setPesoBandeja(60);
+        xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 5, NULL, 5, NULL);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        
+        ver_peso = getPesoBandeja();
+        if (ver_peso < 0 || ver_peso > 500){
+            ver_peso = 0;
+        }
+        else
+            printf("Peso da bandeja: %f\n", ver_peso);
 
-        printf("%f\n", peso_bandeja);
-
-        if(peso_gramas > peso_bandeja){
+        if(ver_peso < peso_gramas){
             printf("Despejando ração pela %d x\n", i);
-            //despejar_comida();
+            despejar_comida();
             vTaskDelay(1000 / portTICK_PERIOD_MS); 
 
         }
@@ -74,30 +78,28 @@ void aciona_fluxo_de_tarefas(int tempo_min, int peso_gramas){
             break;
         }
         i++;
-        //xTaskCreate(task_balanca, "task_balanca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
         vTaskDelay(1000 / portTICK_PERIOD_MS); 
     }
 
     printf("2 - Verificação do nível da ração...\n");
-    vTaskDelay(3000 / portTICK_PERIOD_MS);
-    //verifica_nivel();
+    verifica_nivel();
 
     printf("3 - Ativação do sensor de presença\n");
-    //verifica_presenca();
-    vTaskDelay(3000 / portTICK_PERIOD_MS);
-
+    float sensor_presenca = 0;
     int j = 0;
     while(j < 50){
         printf("3.1 - Aguardando detecção de presença menor que 10cm\n");
-        //verifica_presenca();
-        if(j>=5)
-            setSensorPresenca(8);
-
-        printf("%f\n", sensor_presenca);
+        verifica_presenca();
+        sensor_presenca = getSensorPresenca();
+        if (sensor_presenca < 0 || sensor_presenca > 500){
+            sensor_presenca = 0;
+        }
+        else
+        printf("Distância do sensor de presença: %f\n", sensor_presenca);
 
         if(sensor_presenca <= 10){
             printf("4 - Abrindo a bandeja...\n");
-            //abrir_bandeja();
+            abrir_bandeja();
             //despejar_comida();
 
             tempo_min = tempo_min * 1000 *60;
@@ -105,12 +107,18 @@ void aciona_fluxo_de_tarefas(int tempo_min, int peso_gramas){
             vTaskDelay(tempo_min / portTICK_PERIOD_MS); 
 
             printf("5 - Fechando a bandeja...\n");
-            //fechar_bandeja();
+            fechar_bandeja();
             //girar_sentido_contrario();
 
             break;
         }
-        vTaskDelay(2000 / portTICK_PERIOD_MS); 
         j++;
+        vTaskDelay(1000 / portTICK_PERIOD_MS); 
     }
+    printf("6 - Sistema finalizado...\n");
+
+    float nivel_racao = 0;
+    nivel_racao = getNivelRacao();
+    printf("Nivel de ração remanescente: %f\n", nivel_racao);
+
 }
