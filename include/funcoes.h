@@ -1,6 +1,7 @@
 #ifndef FUNCOES_H
 #define FUNCOES_H
 
+void init_funcoes();
 void task_balanca(void *pvParameters);
 void task_sensor_nivel(void *pvParameters);
 void task_sensor_presenca(void *pvParameters);

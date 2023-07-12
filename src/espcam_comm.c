@@ -50,13 +50,13 @@ static void echo_task(void *arg) {
     char* msgbuffer = malloc(UART_BUFFER_SIZE);
     while(1) {
         xQueueReceive(queue, msgbuffer, portMAX_DELAY);
+        ESP_LOGI("SYNC", "message queue: %s", msgbuffer);
         int8_t tries = 0;
+        uart_flush(UART_NUM_2);
         while (1) {
             memset(rxbuffer, 0, UART_BUFFER_SIZE);
             memset(txbuffer, 0, UART_BUFFER_SIZE);
             
-            uart_flush(UART_NUM_2);
-
             char* sync_str = "SYNC";
             uart_write_bytes(uart_num, sync_str, strlen(sync_str));
 
@@ -65,8 +65,11 @@ static void echo_task(void *arg) {
             int length = 0;
             // ESP_ERROR_CHECK(uart_get_buffered_data_len(uart_num, (size_t*)&length));
             length = uart_read_bytes(uart_num, rxbuffer, UART_BUFFER_SIZE, 100);
+            ESP_LOGI("SYNC", "buffer(%d): %s", length, rxbuffer);
             if (!strcmp(rxbuffer, sync_str)) {
                 
+                ESP_LOGI("SYNC", "YES");
+
                 sprintf(txbuffer, "%03hhd%s", strlen(msgbuffer), msgbuffer);
                 int16_t crc = calcula_CRC((unsigned char*)txbuffer, strlen(txbuffer));
                 sprintf(&txbuffer[strlen(txbuffer)], "%05hd", crc);
@@ -76,11 +79,16 @@ static void echo_task(void *arg) {
                 memset(rxbuffer, 0, UART_BUFFER_SIZE);
                 vTaskDelay(500 / portTICK_PERIOD_MS);
 
+                memset(rxbuffer, 0, UART_BUFFER_SIZE);
                 length = uart_read_bytes(uart_num, rxbuffer, UART_BUFFER_SIZE, 100);
 
                 cJSON* obj = cJSON_Parse(rxbuffer);
                 
+                // ESP_LOGI("EspCamStatus", "Data: %s", rxbuffer);
+                // ESP_LOGI("EspCamStatus", "Has item: %d", cJSON_HasObjectItem(obj, "status"));
+
                 bool resp_status = cJSON_IsTrue(cJSON_GetObjectItem(obj, "status"));
+                ESP_LOGI("EspCamStatus", "%d", resp_status);
                 if (resp_status) {
                     cJSON_Delete(obj);
                     break;
@@ -88,11 +96,12 @@ static void echo_task(void *arg) {
 
                 cJSON_Delete(obj);
 
-                if (++tries >= 5) {
-                    break;
-                }
 
                 vTaskDelay(1000 / portTICK_PERIOD_MS);
+            }
+            
+            if (++tries >= 5) {
+                break;
             }
         }
     }

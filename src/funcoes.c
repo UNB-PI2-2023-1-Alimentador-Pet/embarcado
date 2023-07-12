@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 #include "variaveis_globais.h"
 #include "funcoes.h"
 
@@ -9,6 +10,14 @@
 #include "motor.h"
 #include "racao.h"
 #include "presenca.h"
+#include "status.h"
+
+static SemaphoreHandle_t xSemaphore = NULL;
+
+void init_funcoes() {
+    xSemaphore = xSemaphoreCreateBinary();
+    xSemaphoreGive(xSemaphore);
+}
 
 void task_balanca(void *pvParameters) {
     float peso_novo;
@@ -48,8 +57,10 @@ void verifica_presenca(){
     // printf("Nivel de ração: %f\n", sensor_presenca);
 }
 
-void aciona_fluxo_de_tarefas(int tempo_min, int peso_gramas){
+static int tempo_min;
+static int peso_gramas;
 
+void task_fluxo_de_tarefas(void *pvParameters) {
     vTaskDelay(2000 / portTICK_PERIOD_MS); 
 
     printf("1 - Iniciou o processo para disponibilizar a ração...\n");
@@ -97,6 +108,7 @@ void aciona_fluxo_de_tarefas(int tempo_min, int peso_gramas){
 
         if(sensor_presenca <= 10){
             printf("4 - Abrindo a bandeja...\n");
+            set_bandeja_aberta(true);
             //abrir_bandeja();
             //despejar_comida();
 
@@ -107,10 +119,24 @@ void aciona_fluxo_de_tarefas(int tempo_min, int peso_gramas){
             printf("5 - Fechando a bandeja...\n");
             //fechar_bandeja();
             //girar_sentido_contrario();
-
+            set_bandeja_aberta(false);
             break;
         }
         vTaskDelay(2000 / portTICK_PERIOD_MS); 
         j++;
     }
+    xSemaphoreGive(xSemaphore);
+    vTaskDelete(NULL);
+}
+
+void aciona_fluxo_de_tarefas(int _tempo_min, int _peso_gramas){
+
+    if (xSemaphoreTake(xSemaphore, 1) == pdFALSE) {
+        ESP_LOGI("FLUXO", "SEMAPHORE NOT TAKEN");
+        return;
+    }
+    tempo_min = _tempo_min;
+    peso_gramas = _peso_gramas;
+
+    xTaskCreate(task_fluxo_de_tarefas, "task_fluxo_de_tarefas", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
 }

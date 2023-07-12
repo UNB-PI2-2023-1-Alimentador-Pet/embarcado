@@ -23,10 +23,15 @@
 #include "nvs_flash.h"
 #include "wifi.h"
 #include "status.h"
+#include "variaveis_globais.h"
+#include "cJSON.h"
+#include "mqtthandler.h"
+#include "mqtt.h"
 
 static char* wifi_sta_saved_status_key = "wifi_sta_avail";
 
 static uint8_t connection_status = CONN_IDLE;
+static bool bandeja_aberta = false;
 
 void set_connection_status(uint8_t status) {
     connection_status = status;
@@ -55,6 +60,27 @@ bool get_wifi_sta_saved() {
 
     nvs_close(handle);
     return status;
+}
+
+void task_send_status(void *pvParameters) {
+    while (1) {
+        if (is_mqtt_connected()) {
+            send_status();
+        }
+        vTaskDelay( 3000 / portTICK_PERIOD_MS );
+    }
+}
+
+void init_task_send_status() {
+    xTaskCreate(task_send_status, "task_send_status", configMINIMAL_STACK_SIZE * 4, NULL, 1, NULL);
+}
+
+void set_bandeja_aberta(bool state) {
+    bandeja_aberta = state;
+}
+
+bool get_bandeja_aberta() {
+    return bandeja_aberta;
 }
 
 // void get_user_hash(char* buffer) {

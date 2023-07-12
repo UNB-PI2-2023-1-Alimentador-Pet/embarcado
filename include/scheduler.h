@@ -19,7 +19,7 @@ struct schedule {
     int open_time_in_min;
 };
 
-bool scheduler_feed_time();
+bool scheduler_feed_time(char* horario, int* quantidade_total, int* tempo_bandeja);
 bool scheduler_equals(struct schedule* s1, struct schedule* s2);
 void scheduler_save(char* key, char* value);
 size_t scheduler_load(char* key, char* value);
