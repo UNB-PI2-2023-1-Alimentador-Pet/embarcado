@@ -15,6 +15,7 @@
         "esp_wifi_default.h": "c",
         "scheduler.h": "c",
         "balanca.h": "c",
-        "variaveis_globais.h": "c"
+        "variaveis_globais.h": "c",
+        "funcoes.h": "c"
     }
 }

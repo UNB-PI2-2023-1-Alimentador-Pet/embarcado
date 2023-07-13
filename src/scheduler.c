@@ -47,6 +47,7 @@ int8_t scheduler_get_week_day(int8_t week_index) {
 
 struct schedule scheduler_decode_json(char* json) {
     cJSON* obj = cJSON_Parse(json);
+    
     struct schedule schedule;
     schedule.weekdays = 0;
 
@@ -75,7 +76,7 @@ struct schedule scheduler_decode_json(char* json) {
 }
 
 // TO TEST
-bool scheduler_feed_time() {
+bool scheduler_feed_time(char* horario, int* quantidade_total, int* tempo_bandeja) {
     bool result = false;
     int8_t current_week_day = scheduler_get_current_week_day();
     int8_t hour, minute, second;
@@ -102,10 +103,10 @@ bool scheduler_feed_time() {
             int timedelta = scheduled_second_of_day - current_second_of_day;
             if (schedule.active && timedelta <= 0 && timedelta >= -300) {
                 result = true;
-                
-                ESP_LOGI("TIME", "ITS FUCKING TIME!");
-                scheduler_print(&schedule);
-
+                sprintf(horario, "%02hhd:%02hhd:%02hhd", schedule.h, schedule.m, schedule.s);
+                *quantidade_total = schedule.quantity;
+                *tempo_bandeja = schedule.open_time_in_min;
+                // scheduler_print(&schedule);
                 break;
             }
         }

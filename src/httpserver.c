@@ -27,6 +27,7 @@
 #include "wifi.h"
 #include "status.h"
 #include "httpserver.h"
+#include "mac.h"
 
 void save_sta_conn_data_into_flash(const sta_conn_data* data) {
     nvs_handle_t handle;
@@ -113,6 +114,7 @@ esp_err_t get_verify_connection_handler(httpd_req_t* req) {
     }
 
     cJSON_AddStringToObject(json_resp, "status", status_str);
+    cJSON_AddStringToObject(json_resp, "token", get_mac_address());
 
     char* body_resp = cJSON_Print(json_resp);
     httpd_resp_send(req, body_resp, HTTPD_RESP_USE_STRLEN);

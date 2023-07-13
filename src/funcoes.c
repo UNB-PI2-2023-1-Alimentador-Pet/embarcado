@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 #include "variaveis_globais.h"
 #include "funcoes.h"
 
@@ -9,6 +10,14 @@
 #include "motor.h"
 #include "racao.h"
 #include "presenca.h"
+#include "status.h"
+
+static SemaphoreHandle_t xSemaphore = NULL;
+
+void init_funcoes() {
+    xSemaphore = xSemaphoreCreateBinary();
+    xSemaphoreGive(xSemaphore);
+}
 
 //------------------Threads------------------
 
@@ -46,8 +55,8 @@ void verifica_presenca(){
     xTaskCreate(task_sensor_presenca, "task_sensor_presenca", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
 }
 
-//------------------Fluxo de tarefas (não está utilizando threads)------------------
 
+//------------------Fluxo de tarefas (não está utilizando threads)------------------
 void aciona_fluxo_de_tarefas(int tempo_min, int peso_gramas){
 
     printf("1 - Iniciou o processo para disponibilizar a ração...\n");
@@ -99,6 +108,7 @@ void aciona_fluxo_de_tarefas(int tempo_min, int peso_gramas){
 
         if(sensor_presenca <= 10){ //Esse 10 é um valor de exemplo, pode ser alterado
             printf("4 - Abrindo a bandeja...\n");
+
             abrir_bandeja();
             //despejar_comida();
 
@@ -109,13 +119,28 @@ void aciona_fluxo_de_tarefas(int tempo_min, int peso_gramas){
             printf("5 - Fechando a bandeja...\n");
             fechar_bandeja();
             //girar_sentido_contrario();
-
+            set_bandeja_aberta(false);
             break;
         }
         j++;
         vTaskDelay(500 / portTICK_PERIOD_MS); 
     }
+
     printf("6 - Sistema finalizado...\n");
     printf("Nivel de ração remanescente: %f\n", nivel_racao);
 
+    xSemaphoreGive(xSemaphore);
+//     vTaskDelete(NULL);
 }
+
+// void aciona_fluxo_de_tarefas(int _tempo_min, int _peso_gramas){
+
+//     if (xSemaphoreTake(xSemaphore, 1) == pdFALSE) {
+//         ESP_LOGI("FLUXO", "SEMAPHORE NOT TAKEN");
+//         return;
+//     }
+//     tempo_min = _tempo_min;
+//     peso_gramas = _peso_gramas;
+
+//     xTaskCreate(task_fluxo_de_tarefas, "task_fluxo_de_tarefas", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+// }

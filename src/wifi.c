@@ -24,11 +24,50 @@
 #include "wifi.h"
 #include "status.h"
 #include "time_handle.h"
+#include "mqtt.h"
+#include "espcam_comm.h"
+#include "mac.h"
+#include "cJSON.h"
+
+#define CODE_WIFI 1
+#define CODE_PHOTO 2
 
 static const char* TAG = "wifi";
 
 static wifi_config_t wifi_config;
 static wifi_config_t wifi_sta_config;
+
+void esp_data_message(char* message) {
+    nvs_handle_t handle;
+    char ssid[32];
+    char pass[64];
+    char user_hash[40];
+    char* token;
+    size_t ssid_size = 32;
+    size_t pass_size = 64;
+    size_t user_hash_size = 40;
+    
+    nvs_open("nvs", NVS_READONLY, &handle);
+
+    nvs_get_str(handle, "wifi_sta_ssid", ssid, &ssid_size);
+    nvs_get_str(handle, "wifi_sta_pass", pass, &pass_size);
+    nvs_get_str(handle, "user_hash", user_hash, &user_hash_size);
+    token = get_mac_address();
+
+    nvs_close(handle);
+
+    cJSON* obj = cJSON_CreateObject();
+
+    cJSON_AddNumberToObject(obj, "code", CODE_WIFI);
+    cJSON_AddStringToObject(obj, "ssid", ssid);
+    cJSON_AddStringToObject(obj, "password", pass);
+    cJSON_AddStringToObject(obj, "user_hash", user_hash);
+    cJSON_AddStringToObject(obj, "feeder_token", token);
+
+    strcpy(message, cJSON_Print(obj));
+
+    cJSON_Delete(obj);
+}
 
 static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_id == WIFI_EVENT_AP_STACONNECTED) {
@@ -50,9 +89,18 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
 
         if (!get_wifi_sta_saved()) {
             set_wifi_sta_saved(true);
+            set_connection_status(CONN_CONNECTED);
+            return;
         }
         set_connection_status(CONN_CONNECTED);
+
         sync_time();
+        mqtt_app_start();
+
+        char message[200];
+        esp_data_message(message);
+        espcam_enqueue_message(message);
+    
     }
     else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
         // wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*)event_data;
@@ -61,6 +109,8 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
             set_connection_status(CONN_FAIL);
             return;
         }
+
+        mqtt_app_close();
 
         ESP_ERROR_CHECK(esp_wifi_connect());
 
