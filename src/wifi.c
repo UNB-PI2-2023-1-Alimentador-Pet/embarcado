@@ -128,8 +128,8 @@ void get_wifi_sta_data_from_flash() {
     size_t password_size = 64;
 
     if (USE_STA_DEFAULT) {
-        strcpy(ssid, "frostConn2.5G");
-        strcpy(password, "0000ff99GG");
+        strcpy(ssid, "Redmi Note 10 5G");
+        strcpy(password, "12345678");
     }
     else {
         nvs_get_str(handle, "wifi_sta_ssid", ssid, &ssid_size);

@@ -3,12 +3,11 @@
 #include <freertos/task.h>
 #include <driver/gpio.h>
 #include <esp_timer.h>
-//definição dos pinos
-#define TRIGGER_PIN 13
-#define ECHO_PIN 12
-// #define LED_PIN 13
+#include "variaveis_globais.h"
 
-//int return_value = 0;
+#define TRIGGER_PIN GPIO_NUM_13
+#define ECHO_PIN GPIO_NUM_12
+
 
 //void Pultrasonic_task(void *pvParameters) {
 float Pultrasonic_task() {
@@ -21,7 +20,6 @@ float Pultrasonic_task() {
   TickType_t last_wake_time = xTaskGetTickCount();
   float dist = 0;
   float return_v = 0;
-  //return_value = 0;
 
   for (int i = 0; i < 5; i++) {
     gpio_set_level(TRIGGER_PIN, 0);
@@ -56,10 +54,11 @@ float Pultrasonic_task() {
 }
 
 
-int Psensor_nivel() {
+float Psensor_nivel() {
   float return_value = Pultrasonic_task();
   vTaskDelay(1000 / portTICK_PERIOD_MS);
   //xTaskCreate(Pultrasonic_task, "Pultrasonic_task", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
   printf("\n\nLeitura do sensor de presenca: %f cm\n\n", return_value);
+  setSensorPresenca(return_value);
   return return_value;
 }

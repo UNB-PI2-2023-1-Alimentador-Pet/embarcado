@@ -5,13 +5,13 @@
 #include <driver/gpio.h>
 
 // Definição dos pinos do motor de passo
-#define PIN_STEP  GPIO_NUM_18
-#define PIN_DIR   GPIO_NUM_19
+#define PIN_STEP  GPIO_NUM_19
+#define PIN_DIR   GPIO_NUM_18
 
-// int velocidade = 500;  
-// int rpm = 18000;
-int velocidade = 2000;  
-int rpm = 98; 
+int velocidade = 500;  
+int rpm = 18000;
+// int velocidade = 2000;  
+// int rpm = 98; 
 
 int motorLigado = 1;
 
@@ -55,11 +55,32 @@ void gira_motor(int sentido) {
   gpio_set_level(PIN_STEP, 0);
 }
 
+void task_pra_girar_motor() {
+  gpio_reset_pin(PIN_STEP);
+  gpio_set_direction(PIN_STEP, GPIO_MODE_OUTPUT);
+  gpio_reset_pin(PIN_DIR);
+  gpio_set_direction(PIN_DIR, GPIO_MODE_OUTPUT);
+
+  // Cálculo do número de passos por minuto com base nas RPM
+  int passosPorMinuto = 200 * rpm; 
+  // Cálculo do número de passos por segundo
+  int passosPorSegundo = passosPorMinuto / 60;
+
+    int passosPorLoop = passosPorSegundo / portTICK_PERIOD_MS;  
+    
+    gpio_set_level(PIN_DIR, 1); // Sentido horário
+    printf("gira no sentido anti horario\n");
+    motorPasso(passosPorLoop);
+
+    vTaskDelay(1000 / portTICK_PERIOD_MS); 
+  gpio_set_level(PIN_STEP, 0);
+}
+
 
 // Função para ligar o motor
 void abrir_bandeja() {
   motorLigado = 1;
-  //xTaskCreate(gira_motor, "gira_motor", 2048, NULL, 5, NULL);
+  //xTaskCreate(task_pra_girar_motor, "task_pra_girar_motor", 2048, NULL, 5, NULL);
   gira_motor(0);
 }
 

@@ -41,15 +41,48 @@ void testemotores(){
     
     int i = 0;
     while( i < 50){
-            despejar_comida();
-            vTaskDelay(1000 / portTICK_PERIOD_MS); 
-            abrir_bandeja();
-            vTaskDelay(1000 / portTICK_PERIOD_MS); 
+
             fechar_bandeja();
             vTaskDelay(1000 / portTICK_PERIOD_MS); 
-            girar_sentido_contrario();
+            abrir_bandeja();
             vTaskDelay(1000 / portTICK_PERIOD_MS);
+            // girar_sentido_contrario();
+            // vTaskDelay(1000 / portTICK_PERIOD_MS);
+            // despejar_comida();
+            // vTaskDelay(1000 / portTICK_PERIOD_MS);
+            
             i++;
+    }
+}
+
+void teste_balancas(){
+    printf("Simulção de balanças\n");
+    float ver_peso = 0;
+    //vTaskDelay(1000 / portTICK_PERIOD_MS); 
+
+    int i = 0;
+    while(i < 50){
+            ver_peso = balanca();
+            if (ver_peso < 0 || ver_peso > 500){
+                ver_peso = 0;
+            }
+
+            char peso_bandeja[300];
+            printf("Peso da bandeja: %f\n", ver_peso);
+            sprintf(peso_bandeja, "Peso da bandeja: %lf", ver_peso);
+            mqtt_app_publish("feeder/testebalanca", peso_bandeja, 1);
+            
+            if(ver_peso > 100){
+                mqtt_app_publish("feeder/testebalanca", "Atingiu o peso necessário", 1);
+                printf("Atingiu o peso necessário\nSó esperar o burro do cachorro comer\n");
+                fechar_bandeja();
+                break;
+            }
+            else
+                despejar_comida();
+                
+            i++;
+            printf("Chegou aqui\n");
     }
 }
 
@@ -63,6 +96,10 @@ void app_main() {
     ESP_ERROR_CHECK(ret);
 
     wifi_init();
+
+    vTaskDelay(10000 / portTICK_PERIOD_MS);
+
+    mqtt_app_start();
     start_webserver();
 
     if (get_wifi_sta_saved() || USE_STA_DEFAULT) {
@@ -77,25 +114,26 @@ void app_main() {
         // }
         // mqtt_app_start();
 
-        while(1) {
+        // while(1) {
             
-            vTaskDelay(500 / portTICK_PERIOD_MS);
+        //     vTaskDelay(500 / portTICK_PERIOD_MS);
 
-            if (is_time_or_later("2023-06-28 20:00:00")) {
-                aciona_fluxo_de_tarefas(1,60);
-                break;
-            }
+        //     if (is_time_or_later("2023-06-28 20:00:00")) {
+        //         aciona_fluxo_de_tarefas(1,60);
+        //         break;
+        //     }
             
-        }
+        // }
 
     }
 
 
-// printf("--------------- Iniciando simulação ---------------\n");
-// vTaskDelay(3000 / portTICK_PERIOD_MS);
+printf("--------------- Iniciando simulação ---------------\n");
+vTaskDelay(1000 / portTICK_PERIOD_MS);
 
-// testemotores();
-//aciona_fluxo_de_tarefas(1,60);
+//teste_balancas();
+//testemotores();
+aciona_fluxo_de_tarefas(1,60);
 
 
 }
