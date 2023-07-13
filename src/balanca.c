@@ -8,6 +8,7 @@
 #include "esp_err.h"
 #include "mqtt.h"
 #include "string.h"
+#include "variaveis_globais.h"
 
 #define DOUT_PIN GPIO_NUM_23
 #define SCK_PIN GPIO_NUM_22
@@ -60,18 +61,20 @@ float balanca(void)
         
         float peso=0;
         peso=raw_data-8671380.2;
-        //peso=raw_data-8392658;
-        char raw_data_str[25];
+        //peso=raw_data-8388608;
+        char raw_data_str[50];
+        // char peso_str[25];
         memset(raw_data_str, 0, 25);
-        sprintf(raw_data_str, "raw_data: %ld", raw_data);
+        // memset(peso_str, 0, 25);
         printf("Raw Data: %ld", raw_data);
-        mqtt_app_publish("feeder/testebalanca", raw_data_str, 1);
 
         peso=peso/396;
+        sprintf(raw_data_str, "raw_data: %ld\npeso: %lf", raw_data, peso);
+        mqtt_app_publish("feeder/testebalanca", raw_data_str, 1);
         printf("peso = %f\n", peso);
-        if (peso > 0 && peso < 3000){
-            peso_final = peso;
-        }
+        //if (peso > 0 && peso < 3000){
+        peso_final = peso;
+        //}
         // Convert raw data to weight
         // Use calibration factors to convert raw data to weight value
         // The formula will depend on the characteristics of your load cell and calibration procedure
@@ -79,5 +82,6 @@ float balanca(void)
         vTaskDelay(pdMS_TO_TICKS(100));
     }
     printf("Peso Final: %f\n", peso_final);
+    setPesoBandeja(peso_final);
     return peso_final;
 }

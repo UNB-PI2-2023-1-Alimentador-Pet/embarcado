@@ -11,6 +11,6 @@
 #define ECHO_PIN 4
 
 void Pultrasonic_task(void *pvParameters);
-int Psensor_nivel();
+float Psensor_nivel();
 
 #endif  // PRESENCA_H

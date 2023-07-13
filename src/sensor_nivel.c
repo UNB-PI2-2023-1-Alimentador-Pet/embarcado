@@ -3,12 +3,10 @@
 #include <freertos/task.h>
 #include <driver/gpio.h>
 #include <esp_timer.h>
-//definição dos pinos
-#define TRIGGER_PIN 14
-#define ECHO_PIN 27
-// #define LED_PIN 13
+#include "variaveis_globais.h"
 
-//int return_value = 0;
+#define TRIGGER_PIN GPIO_NUM_14
+#define ECHO_PIN GPIO_NUM_27
 
 //void ultrasonic_task(void *pvParameters) {
 float ultrasonic_task() {
@@ -20,7 +18,6 @@ float ultrasonic_task() {
   TickType_t last_wake_time = xTaskGetTickCount();
   float dist = 0;
   float return_v = 0;
-  //return_value = 0;
 
   for (int i = 0; i < 5; i++) {
     gpio_set_level(TRIGGER_PIN, 0);
@@ -55,10 +52,11 @@ float ultrasonic_task() {
 }
 
 
-int sensor_nivel() {
+float sensor_nivel() {
   float return_value = ultrasonic_task();
   vTaskDelay(1100 / portTICK_PERIOD_MS);
   //xTaskCreate(ultrasonic_task, "ultrasonic_task", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
   printf("\n\n\nLeitura na função sensor_nivel: %f cm\n\n\n", return_value);
+  setNivelRacao(return_value);
   return return_value;
 }
