@@ -1,4 +1,5 @@
 #include "cJSON.h"
+#include "esp_log.h"
 #include "esp_err.h"
 #include "string.h"
 #include "stdbool.h"
@@ -8,6 +9,9 @@
 #include "mqtt.h"
 #include "mac.h"
 #include "scheduler.h"
+#include "funcoes.h"
+#include "variaveis_globais.h"
+#include "status.h"
 
 #define SERVER_SENDER_ATTR "server"
 #define SENDER_ESP_ATTR "esp32"
@@ -18,10 +22,9 @@ static size_t user_hash_size = 0;
 void send_status() {
     cJSON* obj = cJSON_CreateObject();
 
-    // TODO change values
     cJSON_AddStringToObject(obj, "action", "status");
-    cJSON_AddNumberToObject(obj, "reservatory_level", 20);
-    cJSON_AddBoolToObject(obj, "open", false);
+    cJSON_AddNumberToObject(obj, "reservatory_level", getNivelRacao());
+    cJSON_AddBoolToObject(obj, "open", get_bandeja_aberta());
 
     char* data = cJSON_Print(obj);
     char topic[20];
@@ -32,12 +35,18 @@ void send_status() {
 }
 
 void remote_open(char* json) {
+    ESP_LOGI("REMOTE OPEN", "DATA: %s", json);
     cJSON* obj = cJSON_Parse(json);
+    if (obj == NULL) {
+        ESP_LOGI("REMOTE OPEN", "ERROR AT PARSING JSON");
+        return;
+    }
 
     cJSON* obj_action = cJSON_GetObjectItem(obj, "action");
     char* action = cJSON_GetStringValue(obj_action);
 
     if (strcmp(action, "feed")) {
+        ESP_LOGI("REMOTE OPEN", "ACTION NOT FEED");
         cJSON_Delete(obj);
         return;
     }
@@ -51,8 +60,7 @@ void remote_open(char* json) {
     cJSON* obj_tempo_bandeja = cJSON_GetObjectItem(obj, "tempoBandeja");
     tempo_bandeja = cJSON_GetNumberValue(obj_tempo_bandeja);
 
-    // TODO
-    // aciona_fluxo_de_tarefas()
+    aciona_fluxo_de_tarefas(tempo_bandeja, quantidade);
 
     cJSON_Delete(obj);
 }
@@ -67,19 +75,21 @@ void schedule_save_handler(const char* json) {
 
 char* get_user_hash(size_t* hash_size) {
 
-    if (user_hash_size == 0) {
-        nvs_handle_t handle;
-        nvs_open("nvs", NVS_READONLY, &handle);
-
-        size_t user_hash_size;
-        nvs_get_str(handle, "user_hash", user_hash, &user_hash_size);
-
-        nvs_close(handle);
-    }
-    if (hash_size != NULL) {
-        *hash_size = user_hash_size;
-    }
+    strcpy(user_hash, "7bbd51b5-8b98-4df1-a5d6-534365fe17d8");
     return user_hash;
+    // if (user_hash_size == 0) {
+    //     nvs_handle_t handle;
+    //     nvs_open("nvs", NVS_READONLY, &handle);
+
+    //     size_t user_hash_size;
+    //     nvs_get_str(handle, "user_hash", user_hash, &user_hash_size);
+
+    //     nvs_close(handle);
+    // }
+    // if (hash_size != NULL) {
+    //     *hash_size = user_hash_size;
+    // }
+    // return user_hash;
 }
 
 bool verify_equal(const char* actual, const char* expected) {
