@@ -6,11 +6,13 @@
 #include "status.h"
 #include "mqtthandler.h"
 #include "mac.h"
+#include "wifi.h"
+#include "espcam_comm.h"
 
 static const char* TAG = "MQTT_CLIENT";
 static esp_mqtt_client_handle_t client;
 
-static char schedules_topic[50];
+static char schedules_topic[60];
 static char app_topic[20];
 
 static bool mqtt_connected = false;
@@ -20,13 +22,18 @@ void mqtt_event_handler(void* event_handler_arg, esp_event_base_t event_base, in
     esp_mqtt_event_handle_t event = event_data;
     esp_mqtt_client_handle_t client = event->client;
 
-    // char topic[120];
+    char topic[400];
     
     switch((esp_mqtt_event_id_t)event_id) {
         
         case MQTT_EVENT_CONNECTED:
             ESP_LOGI(TAG, "MQTT Client connected");
             mqtt_connected = true;
+
+            char message[200];
+            esp_data_message(message);
+            espcam_enqueue_message(message);
+
             ESP_LOGI("SUBSCRIBE", "%s", app_topic);
             esp_mqtt_client_subscribe(client, schedules_topic, 1);
             // ESP_LOGI("TOPIC SUBSCRIBE", "%d", result);
@@ -54,7 +61,15 @@ void mqtt_event_handler(void* event_handler_arg, esp_event_base_t event_base, in
         case MQTT_EVENT_DATA:
             ESP_LOGI(TAG, "Data received from topic: %s", event->topic);
             
+            // sprintf(topic, "%s", event->data);
+            // mqtt_app_publish("feeder/schedule", topic, 1);
+
+            sprintf(topic, "%s", event->data);
+            mqtt_app_publish("feeder/event_data", topic, 1);
+            
             if (!strncmp(schedules_topic, event->topic, event->topic_len)) {
+                sprintf(topic, "schedules topic received");
+                mqtt_app_publish("feeder/schedule", topic, 1);
                 schedule_save_handler(event->data);
             }
             
@@ -92,7 +107,7 @@ void mqtt_app_start() {
     esp_mqtt_client_config_t mqtt_cfg = {
         .broker =  {
             .address = {
-                .uri = "mqtt://test.mosquitto.org:1883",
+                .uri = "mqtt://broker.emqx.io:1883",
                 // .port = 1883,
                 // .
             }

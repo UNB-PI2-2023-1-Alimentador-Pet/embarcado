@@ -9,7 +9,7 @@
 #define PIN_DIR   GPIO_NUM_18
 
 int velocidade = 500;  
-int rpm = 18000;
+int rpm = 11700;
 // int velocidade = 2000;  
 // int rpm = 98; 
 
@@ -81,13 +81,13 @@ void task_pra_girar_motor() {
 void abrir_bandeja() {
   motorLigado = 1;
   //xTaskCreate(task_pra_girar_motor, "task_pra_girar_motor", 2048, NULL, 5, NULL);
-  gira_motor(0);
+  gira_motor(1);
 }
 
 void fechar_bandeja() {
   motorLigado = 1;
   //xTaskCreate(gira_motor, "gira_motor", 2048, NULL, 5, NULL);
-  gira_motor(1);
+  gira_motor(0);
 }
 
 // Função para desligar o motor
