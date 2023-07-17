@@ -46,6 +46,7 @@ int8_t scheduler_get_week_day(int8_t week_index) {
 }
 
 struct schedule scheduler_decode_json(char* json) {
+    // ESP_LOGI("DECODE JSON", "%s", json);
     cJSON* obj = cJSON_Parse(json);
     
     struct schedule schedule;
@@ -91,7 +92,7 @@ bool scheduler_feed_time(char* horario, int* quantidade_total, int* tempo_bandej
         nvs_entry_info_t info;
         nvs_entry_info(it, &info);
 
-        // ESP_LOGI("KEY", "%s", info.key);
+        ESP_LOGI("KEY", "%s", info.key);
         int8_t scheduled_days = 0;
         sscanf(&info.key[2], "%03hhd", &scheduled_days);
 
@@ -99,14 +100,15 @@ bool scheduler_feed_time(char* horario, int* quantidade_total, int* tempo_bandej
             memset(value, 0, 10);
             scheduler_load(info.key, value);
             struct schedule schedule = scheduler_decode(info.key, value);
+            scheduler_print(&schedule);
             int scheduled_second_of_day = SECOND(schedule.h, schedule.m, schedule.s);
             int timedelta = scheduled_second_of_day - current_second_of_day;
-            if (schedule.active && timedelta <= 0 && timedelta >= -300) {
+            if (schedule.active && timedelta <= 0 && timedelta >= -30) {
                 result = true;
                 sprintf(horario, "%02hhd:%02hhd:%02hhd", schedule.h, schedule.m, schedule.s);
                 *quantidade_total = schedule.quantity;
                 *tempo_bandeja = schedule.open_time_in_min;
-                // scheduler_print(&schedule);
+                scheduler_print(&schedule);
                 break;
             }
         }

@@ -12,11 +12,13 @@
 #include "funcoes.h"
 #include "variaveis_globais.h"
 #include "status.h"
+#include "time_handle.h"
+#include "cJSON.h"
 
 #define SERVER_SENDER_ATTR "server"
 #define SENDER_ESP_ATTR "esp32"
 
-static char user_hash[100];
+static char user_hash[60];
 static size_t user_hash_size = 0;
 
 void send_status() {
@@ -25,6 +27,8 @@ void send_status() {
     cJSON_AddStringToObject(obj, "action", "status");
     cJSON_AddNumberToObject(obj, "reservatory_level", getNivelRacao());
     cJSON_AddBoolToObject(obj, "open", get_bandeja_aberta());
+    cJSON_AddStringToObject(obj, "user_hash", get_user_hash(NULL));
+    get_time();
 
     char* data = cJSON_Print(obj);
     char topic[20];
@@ -69,27 +73,29 @@ void schedule_save_handler(const char* json) {
     char key[30];
     char value[30];
     struct schedule schedule = scheduler_decode_json(json);
+    ESP_LOGI("JSON RECEIVED", "%s", json);
     scheduler_encode(&schedule, key, value);
     scheduler_save(key, value);
 }
 
 char* get_user_hash(size_t* hash_size) {
 
-    strcpy(user_hash, "7bbd51b5-8b98-4df1-a5d6-534365fe17d8");
-    return user_hash;
-    // if (user_hash_size == 0) {
-    //     nvs_handle_t handle;
-    //     nvs_open("nvs", NVS_READONLY, &handle);
-
-    //     size_t user_hash_size;
-    //     nvs_get_str(handle, "user_hash", user_hash, &user_hash_size);
-
-    //     nvs_close(handle);
-    // }
-    // if (hash_size != NULL) {
-    //     *hash_size = user_hash_size;
-    // }
+    // strcpy(user_hash, "de14b0b7-e193-495b-891c-0cc5de86ed77");
     // return user_hash;
+
+    if (user_hash_size == 0) {
+        nvs_handle_t handle;
+        nvs_open("nvs", NVS_READONLY, &handle);
+
+        size_t user_hash_size;
+        nvs_get_str(handle, "user_hash", user_hash, &user_hash_size);
+
+        nvs_close(handle);
+    }
+    if (hash_size != NULL) {
+        *hash_size = user_hash_size;
+    }
+    return user_hash;
 }
 
 bool verify_equal(const char* actual, const char* expected) {

@@ -11,8 +11,8 @@
 // Definição das variáveis de controle do motor
 // int Rvelocidade = 500;  
 // int Rrpm = 18000; 
-int Rvelocidade = 2000;  
-int Rrpm = 98; 
+int Rvelocidade = 1000;  
+int Rrpm = 600; 
 
 // Variável de controle do motor
 int RmotorLigado = 1;
@@ -56,7 +56,7 @@ void Rgira_motor(int sentido) {
       passosPorLoop = passosPorSegundo / portTICK_PERIOD_MS;  // portTICK_PERIOD_MS é a duração de cada tick (geralmente 1 ms em ESP-IDF)
       RmotorPasso(passosPorLoop);
     }
-    vTaskDelay(1000 / portTICK_PERIOD_MS); 
+    vTaskDelay(500 / portTICK_PERIOD_MS); 
     gpio_set_level(PIN_STEP, 0);
 }
 
@@ -65,7 +65,12 @@ void Rgira_motor(int sentido) {
 void despejar_comida() {
   RmotorLigado = 1;
   //xTaskCreate(gira_motor, "gira_motor", 2048, NULL, 5, NULL);
+  Rrpm = 200;
+  Rvelocidade = 12000;
   Rgira_motor(1);
+  Rvelocidade = 12000;
+  Rrpm = 200;
+  Rgira_motor(0);
 }
 
 void girar_sentido_contrario() {

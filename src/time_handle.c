@@ -5,6 +5,7 @@
 #include "sys/time.h"
 #include "time.h"
 #include "status.h"
+#include "mqtt.h"
 
 struct tm get_time() {
     time_t now;
@@ -15,6 +16,9 @@ struct tm get_time() {
     localtime_r(&now, &timeinfo);
 
     strftime(strftime_buf, sizeof(strftime_buf), "%F %T", &timeinfo);
+
+    mqtt_app_publish("feeder/time", strftime_buf, 1);
+
     ESP_LOGI("TIME", "current time=%s", strftime_buf);
     return timeinfo;
 }

@@ -97,9 +97,9 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
         sync_time();
         mqtt_app_start();
 
-        char message[200];
-        esp_data_message(message);
-        espcam_enqueue_message(message);
+        // char message[200];
+        // esp_data_message(message);
+        // espcam_enqueue_message(message);
     
     }
     else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {

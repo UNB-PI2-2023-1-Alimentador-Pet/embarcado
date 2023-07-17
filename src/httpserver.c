@@ -125,9 +125,16 @@ esp_err_t get_verify_connection_handler(httpd_req_t* req) {
 }
 
 esp_err_t post_restart_handler(httpd_req_t* req) {
-    char* resp = "{\"action\": restart}";
-    httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
-    usleep(1000000);
+    cJSON* obj = cJSON_CreateObject();
+    
+    cJSON_AddStringToObject(obj, "action", "restart");
+    cJSON_AddStringToObject(obj, "token", get_mac_address());
+
+    httpd_resp_send(req, cJSON_Print(obj), HTTPD_RESP_USE_STRLEN);
+
+    cJSON_Delete(obj);
+    // usleep(1000000);
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
     esp_restart();
     return ESP_OK;
 }
