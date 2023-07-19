@@ -25,9 +25,10 @@ void send_status() {
     cJSON* obj = cJSON_CreateObject();
 
     cJSON_AddStringToObject(obj, "action", "status");
-    cJSON_AddNumberToObject(obj, "reservatory_level", getNivelRacao());
+    cJSON_AddNumberToObject(obj, "reservatory_level", (int)getNivelRacao());
     cJSON_AddBoolToObject(obj, "open", get_bandeja_aberta());
     cJSON_AddStringToObject(obj, "user_hash", get_user_hash(NULL));
+    cJSON_AddStringToObject(obj, "token", get_mac_address());
     get_time();
 
     char* data = cJSON_Print(obj);

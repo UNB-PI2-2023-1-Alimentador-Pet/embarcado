@@ -4,6 +4,7 @@
 #include <driver/gpio.h>
 #include <esp_timer.h>
 #include "variaveis_globais.h"
+#include "mqtt.h"
 
 #define TRIGGER_PIN GPIO_NUM_14
 #define ECHO_PIN GPIO_NUM_27
@@ -40,6 +41,9 @@ float ultrasonic_task() {
     float distance = (duration * (343.0 / 1000000)) / 2;
 
     //printf("Leitura na função Distancia: %.2f cm\n", distance * 100);
+    char message[200];
+    sprintf(message, "duration: %lu, distance: %lf", duration, distance);
+    mqtt_app_publish("feeder/sensor", message, 1);
 
     if (distance * 100 > dist)
       dist = distance * 100;
