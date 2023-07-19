@@ -90,6 +90,7 @@ void app_main() {
 
     ESP_LOGI("ESP_TOKEN", "%s", get_mac_address());
 
+    sensor_nivel();
     init_task_send_status();
 
     // vTaskDelay( 2000 / portTICK_PERIOD_MS );
